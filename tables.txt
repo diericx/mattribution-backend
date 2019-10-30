@@ -1,0 +1,9 @@
+CREATE TABLE tracks(
+  id SERIAL NOT NULL PRIMARY KEY,
+  user_id varchar,
+  fp_hash varchar,
+  page_url varchar,
+  path varchar,
+  referrer varchar,
+  extra json
+)

@@ -7,9 +7,10 @@ import (
 )
 
 // =~=~=~=~=~=~=~=~=~=~=~=~=~=~
-// Entities
+// Domain
 // =~=~=~=~=~=~=~=~=~=~=~=~=~=~
 
+// Track holds tracking data for a specific event
 type Track struct {
 	ID       int    `json:"id"`
 	UserID   string `json:"userId"`
@@ -19,10 +20,6 @@ type Track struct {
 	Referrer string `json:"referrer"`
 	Extra    string `json:"extra"` // (optional) extra json
 }
-
-// =~=~=~=~=~=~=~=~=~=~=~=~=~=~
-// Domain
-// =~=~=~=~=~=~=~=~=~=~=~=~=~=~
 
 // Repository repository interface to model how we interact with our repo (storage)
 type Repository interface {
@@ -34,10 +31,12 @@ type Repository interface {
 // Use case
 // =~=~=~=~=~=~=~=~=~=~=~=~=~=~
 
+// Service holds the high level business logic
 type Service struct {
 	r Repository
 }
 
+// NewService creates a new Service object
 func NewService(r Repository) Service {
 	return Service{
 		r: r,
@@ -53,6 +52,7 @@ func (s Service) IsValid(t Track) bool {
 	return true
 }
 
+// New will create and store a new Track object
 func (s Service) New(t Track) (id int, err error) {
 	valid := s.IsValid(t)
 	if !valid {
@@ -66,7 +66,7 @@ func (s Service) New(t Track) (id int, err error) {
 // Framework & Driver
 // =~=~=~=~=~=~=~=~=~=~=~=~=~=~
 
-// PostgresRepo repo implemented in postgres
+// PostgresRepo is a repo implemented in postgres
 type PostgresRepo struct {
 	db *sql.DB
 }

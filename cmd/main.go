@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq"
 
 	track "github.com/diericx/tracker/backend/pkg"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -27,7 +28,6 @@ func main() {
 	trackService := track.NewService(trackPostgresRepo)
 
 	r := mux.NewRouter()
-	// trackRepo := api.NewTrackPG("localhost:5432")
 	// TODO
 	// r.Host("www.example.com")
 
@@ -39,10 +39,7 @@ func main() {
 		data, err := base64.StdEncoding.DecodeString(rawEvent)
 		if err != nil {
 			panic(err)
-			return
 		}
-
-		log.Println(data)
 
 		track := track.Track{}
 		if err := json.Unmarshal(data, &track); err != nil {
@@ -65,8 +62,6 @@ func main() {
 	}).Methods("GET")
 
 	// Start server
-	if err := http.ListenAndServe(":8080", r); err != nil {
-		panic(err)
-	}
+	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r)))
 
 }

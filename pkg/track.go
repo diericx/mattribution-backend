@@ -2,8 +2,8 @@ package track
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
+	"time"
 )
 
 // =~=~=~=~=~=~=~=~=~=~=~=~=~=~
@@ -12,13 +12,21 @@ import (
 
 // Track holds tracking data for a specific event
 type Track struct {
-	ID       int    `json:"id"`
-	UserID   string `json:"userId"`
-	FpHash   string `json:"fpHash"`  // fingerprint hash
-	PageURL  string `json:"pageURL"` // optional (website specific)
-	Path     string `json:"path"`    // optional ()
-	Referrer string `json:"referrer"`
-	Extra    string `json:"extra"` // (optional) extra json
+	ID              int    `json:"id"`
+	UserID          string `json:"userId"`
+	FpHash          string `json:"fpHash"`   // fingerprint hash
+	PageURL         string `json:"pageURL"`  // optional (website specific)
+	PagePath        string `json:"pagePath"` // optional ()
+	PageTitle       string `json:"pageTitle"`
+	PageReferrer    string `json:"pageReferrer"`
+	Event           string `json:"event"`
+	CampaignSource  string `json:"campaignSource"`
+	CampaignMedium  string `json:"campaignMedium"`
+	CampaignName    string `json:"campaignName"`
+	CampaignContent string `json:"campaignContent"`
+	SentAt          int64  `json:"sentAt"`
+	IP              string
+	Extra           string `json:"extra"` // (optional) extra json
 }
 
 // Repository repository interface to model how we interact with our repo (storage)
@@ -45,7 +53,7 @@ func NewService(r Repository) Service {
 
 // IsValid checks to see if a track object is valid
 func (s Service) IsValid(t Track) bool {
-	if t.UserID == "" && t.FpHash != "" {
+	if t.UserID == "" && t.FpHash == "" {
 		return false
 	}
 
@@ -56,7 +64,7 @@ func (s Service) IsValid(t Track) bool {
 func (s Service) New(t Track) (id int, err error) {
 	valid := s.IsValid(t)
 	if !valid {
-		return 0, errors.New("Invalid track")
+		return 0, fmt.Errorf("Invalid track: %v", t)
 	}
 
 	return s.r.Store(t)
@@ -99,8 +107,8 @@ func (p PostgresRepo) GetDB() *sql.DB {
 // Store stores a new track object
 func (p PostgresRepo) Store(t Track) (id int, err error) {
 	sqlStatement :=
-		`INSERT INTO public.tracks (user_id, fp_hash, page_url, path, referrer, extra)
-	VALUES($1, $2, $3, $4, $5, $6)
+		`INSERT INTO public.tracks (user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, received_at, extra)
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 	RETURNING id`
 
 	id = 0
@@ -109,7 +117,7 @@ func (p PostgresRepo) Store(t Track) (id int, err error) {
 		t.Extra = "{}"
 	}
 
-	err = p.db.QueryRow(sqlStatement, t.UserID, t.FpHash, t.PageURL, t.Path, t.Referrer, t.Extra).Scan(&id)
+	err = p.db.QueryRow(sqlStatement, t.UserID, t.FpHash, t.PageURL, t.PagePath, t.PageReferrer, t.PageTitle, t.Event, t.CampaignSource, t.CampaignMedium, t.CampaignName, t.CampaignContent, time.Unix(0, t.SentAt*int64(time.Millisecond)).Format(time.RFC3339), time.Now().Format(time.RFC3339), t.Extra).Scan(&id)
 	if err != nil {
 		return id, err
 	}

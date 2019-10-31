@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"log"
+	"net"
 	"net/http"
 
 	_ "github.com/lib/pq"
@@ -45,6 +46,8 @@ func main() {
 		if err := json.Unmarshal(data, &track); err != nil {
 			panic(err)
 		}
+		ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+		track.IP = ip
 
 		log.Println(track)
 

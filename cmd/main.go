@@ -20,6 +20,14 @@ var gif = []byte{
 	1, 0, 1, 0, 0, 2, 1, 68, 0, 59,
 }
 
+const (
+	mockOwnerID = 1
+)
+
+type tracksPayload struct {
+	Tracks []track.Track `json:"tracks"`
+}
+
 func main() {
 	trackPostgresRepo, err := track.NewPostgresRepo("localhost", 5432, "postgres", "postgres", "mattribution")
 	if err != nil {
@@ -49,19 +57,32 @@ func main() {
 		ip, _, _ := net.SplitHostPort(r.RemoteAddr)
 		track.IP = ip
 
-		log.Println(track)
-
-		id, err := trackService.New(track)
+		_, err = trackService.New(mockOwnerID, track)
 		if err != nil {
 			panic(err)
 		}
-
-		log.Println(id)
 
 		// Write gif back to client
 		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 		w.Header().Set("Content-Type", "image/gif")
 		w.Write(gif)
+	}).Methods("GET")
+
+	r.HandleFunc("/v1/pixel/tracks", func(w http.ResponseWriter, r *http.Request) {
+		// Get pixel data from client
+		// v := r.URL.Query()
+
+		tracks, err := trackService.GetTracksForUser(mockOwnerID)
+		if err != nil {
+			panic(err)
+		}
+
+		p := tracksPayload{tracks}
+
+		// Write gif back to client
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(p)
 	}).Methods("GET")
 
 	// Start server

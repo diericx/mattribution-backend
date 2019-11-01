@@ -1,12 +1,23 @@
-INSERT INTO public.tracks (user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, received_at, extra)
-VALUES('', '9d64d8e5e7ea4f4aeac8f3604edbd143', 'https://mattribution/', '/', 'https://google.com', 'Home', 'page_view', 'Adwords', 'search', 'search ads', 'stock photo', '2019-10-31 11:30:30', '2019-10-31 11:30:30', '{}');
+INSERT INTO public.tracks (owner_id, user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, received_at, extra)
+VALUES(1, '', '9d64d8e5e7ea4f4aeac8f3604edbd143', 'https://mattribution/', '/', 'https://google.com', 'Home', 'page_view', 'Adwords', 'search', 'search ads', 'stock photo', '2019-10-31 11:30:30', '2019-10-31 11:30:30', '{}');
 
-INSERT INTO public.tracks (user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, received_at, extra)
-VALUES('', '9d64d8e5e7ea4f4aeac8f3604edbd143', 'https://mattribution/about', '/about', 'https://mattribution/', 'About', 'page_view', '', '', '', '', '2019-10-31 11:31:00', '2019-10-31 11:31:01', '{}');
+INSERT INTO public.tracks (owner_id, user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, received_at, extra)
+VALUES(1, '', '9d64d8e5e7ea4f4aeac8f3604edbd143', 'https://mattribution/about', '/about', 'https://mattribution/', 'About', 'page_view', '', '', '', '', '2019-10-31 11:31:00', '2019-10-31 11:31:01', '{}');
 
-INSERT INTO public.tracks (user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, received_at, extra)
-VALUES('', '9d64d8e5e7ea4f4aeac8f3604edbd143', 'https://mattribution/signup', '/signup', 'https://mattribution/about', 'Sign Up', 'page_view', '', '', '', '', '2019-10-31 11:31:30', '2019-10-31 11:31:31', '{}');
+INSERT INTO public.tracks (owner_id, user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, received_at, extra)
+VALUES(1, '', '9d64d8e5e7ea4f4aeac8f3604edbd143', 'https://mattribution/', '/', 'https://facebook.com', 'Home', 'page_view', 'Facebook', 'feed', 'facebook feed ads', 'dashboard photo', '2019-11-1 9:30:30', '2019-11-1 9:30:30', '{}');
 
-INSERT INTO public.tracks (user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, received_at, extra)
-VALUES('1', '9d64d8e5e7ea4f4aeac8f3604edbd143', 'https://mattribution/signupsuccess', '/signupsuccess', 'https://mattribution/signup', 'Sign Up Success', 'signup', '', '', '', '', '2019-10-31 11:32:00', '2019-10-31 11:32:01', '{}');
+INSERT INTO public.tracks (owner_id, user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, received_at, extra)
+VALUES(1, '', '9d64d8e5e7ea4f4aeac8f3604edbd143', 'https://mattribution/about', '/about', 'https://mattribution/', 'About', 'page_view', '', '', '', '', '2019-11-1 9:31:00', '2019-11-1 9:31:01', '{}');
 
+INSERT INTO public.tracks (owner_id, user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, received_at, extra)
+VALUES(1, '', '9d64d8e5e7ea4f4aeac8f3604edbd143', 'https://mattribution/how-it-works', '/how-it-works', 'https://mattribution/about', 'How It Works', 'page_view', '', '', '', '', '2019-11-1 9:33:00', '2019-11-1 9:33:01', '{}');
+
+INSERT INTO public.tracks (owner_id, user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, received_at, extra)
+VALUES(1, '', '9d64d8e5e7ea4f4aeac8f3604edbd143', 'https://mattribution/signup', '/signup', 'https://mattribution/about', 'Sign Up', 'page_view', '', '', '', '', '2019-11-1 10:00:30', '2019-11-1 10:00:33', '{}');
+
+INSERT INTO public.tracks (owner_id, user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, received_at, extra)
+VALUES(1, '1', '9d64d8e5e7ea4f4aeac8f3604edbd143', 'https://mattribution/signupsuccess', '/signupsuccess', 'https://mattribution/signup', 'Sign Up Success', 'signup', '', '', '', '', '2019-11-1 10:45:00', '2019-11-1 11:45:01', '{}');
+
+INSERT INTO public.tracks (owner_id, user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, received_at, extra)
+VALUES(1, '1', '9d64d8e5e7ea4f4aeac8f3604edbd143', 'https://mattribution/dashboard', '/dashboard', '', 'Dashboard', 'page_view', '', '', '', '', '2019-11-1 11:45:00', '2019-11-1 11:45:01', '{}');

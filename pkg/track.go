@@ -29,11 +29,18 @@ type Track struct {
 	Extra           string `json:"extra"` // (optional) extra json
 }
 
+// DailyCount is the amount of tracks for a given day
+type DailyCount struct {
+	Day   string `json:"day"`
+	Count int    `json:"count"`
+}
+
 // Repository repository interface to model how we interact with our repo (storage)
 type Repository interface {
 	// Find(id int) (track, error)
 	Store(ownerID int, t Track) (id int, err error)
 	FindByOwnerID(ownerID int) ([]Track, error)
+	FindDailyCounts(ownerID int) ([]DailyCount, error)
 }
 
 // =~=~=~=~=~=~=~=~=~=~=~=~=~=~
@@ -71,9 +78,14 @@ func (s Service) New(ownerID int, t Track) (id int, err error) {
 	return s.r.Store(ownerID, t)
 }
 
-// GetTracksForUser will query for tracks for a specific user
-func (s Service) GetTracksForUser(userID int) ([]Track, error) {
+// GetAll will query for tracks for a specific user
+func (s Service) GetAll(userID int) ([]Track, error) {
 	return s.r.FindByOwnerID(userID)
+}
+
+// GetDailyCounts will aggregate tracks into a daily count
+func (s Service) GetDailyCounts(userID int) ([]DailyCount, error) {
+	return s.r.FindDailyCounts(userID)
 }
 
 // =~=~=~=~=~=~=~=~=~=~=~=~=~=~
@@ -161,4 +173,37 @@ func (p PostgresRepo) FindByOwnerID(ownerID int) ([]Track, error) {
 	}
 
 	return tracks, nil
+}
+
+func (p PostgresRepo) FindDailyCounts(ownerID int) ([]DailyCount, error) {
+	sqlStatement := `
+	SELECT date_trunc('day', received_at) "day", count(*) as count
+	FROM public.tracks
+	WHERE owner_id = $1
+	GROUP BY 1`
+
+	rows, err := p.db.Query(sqlStatement, ownerID)
+	if err != nil {
+		// handle this error better than this
+		return nil, err
+	}
+	defer rows.Close()
+
+	dailyCounts := []DailyCount{}
+	for rows.Next() {
+		var dc DailyCount
+		err = rows.Scan(&dc.Day, &dc.Count)
+		if err != nil {
+			// handle this error
+			return nil, err
+		}
+		dailyCounts = append(dailyCounts, dc)
+	}
+	// get any error encountered during iteration
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return dailyCounts, nil
 }

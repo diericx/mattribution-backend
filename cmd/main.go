@@ -27,6 +27,9 @@ const (
 type tracksPayload struct {
 	Tracks []track.Track `json:"tracks"`
 }
+type trackDailyCountsPayload struct {
+	DailyCounts []track.DailyCount `json:"dailyCounts"`
+}
 
 func main() {
 	trackPostgresRepo, err := track.NewPostgresRepo("localhost", 5432, "postgres", "postgres", "mattribution")
@@ -72,12 +75,29 @@ func main() {
 		// Get pixel data from client
 		// v := r.URL.Query()
 
-		tracks, err := trackService.GetTracksForUser(mockOwnerID)
+		tracks, err := trackService.GetAll(mockOwnerID)
 		if err != nil {
 			panic(err)
 		}
 
 		p := tracksPayload{tracks}
+
+		// Write gif back to client
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(p)
+	}).Methods("GET")
+
+	r.HandleFunc("/v1/pixel/tracks/count", func(w http.ResponseWriter, r *http.Request) {
+		// Get pixel data from client
+		// v := r.URL.Query()
+
+		trackCounts, err := trackService.GetDailyCounts(mockOwnerID)
+		if err != nil {
+			panic(err)
+		}
+
+		p := trackDailyCountsPayload{trackCounts}
 
 		// Write gif back to client
 		w.Header().Set("Content-Type", "application/json")

@@ -29,6 +29,15 @@ type Track struct {
 	Extra           string `json:"extra"` // (optional) extra json
 }
 
+// IsValid checks to see if a track object is valid
+func (t Track) IsValid() bool {
+	if t.UserID == "" && t.FpHash == "" {
+		return false
+	}
+
+	return true
+}
+
 // DailyCount is the amount of tracks for a given day
 type DailyCount struct {
 	Day   string `json:"day"`
@@ -40,52 +49,8 @@ type Repository interface {
 	// Find(id int) (track, error)
 	Store(ownerID int, t Track) (id int, err error)
 	FindByOwnerID(ownerID int) ([]Track, error)
+	FindByAttributeAndValue(ownerID int, attribute string, value string) ([]Track, error)
 	FindDailyCounts(ownerID int) ([]DailyCount, error)
-}
-
-// =~=~=~=~=~=~=~=~=~=~=~=~=~=~
-// Use case
-// =~=~=~=~=~=~=~=~=~=~=~=~=~=~
-
-// Service holds the high level business logic
-type Service struct {
-	r Repository
-}
-
-// NewService creates a new Service object
-func NewService(r Repository) Service {
-	return Service{
-		r: r,
-	}
-}
-
-// IsValid checks to see if a track object is valid
-func (s Service) IsValid(t Track) bool {
-	if t.UserID == "" && t.FpHash == "" {
-		return false
-	}
-
-	return true
-}
-
-// New will create and store a new Track object
-func (s Service) New(ownerID int, t Track) (id int, err error) {
-	valid := s.IsValid(t)
-	if !valid {
-		return 0, fmt.Errorf("Invalid track: %v", t)
-	}
-
-	return s.r.Store(ownerID, t)
-}
-
-// GetAll will query for tracks for a specific user
-func (s Service) GetAll(userID int) ([]Track, error) {
-	return s.r.FindByOwnerID(userID)
-}
-
-// GetDailyCounts will aggregate tracks into a daily count
-func (s Service) GetDailyCounts(userID int) ([]DailyCount, error) {
-	return s.r.FindDailyCounts(userID)
 }
 
 // =~=~=~=~=~=~=~=~=~=~=~=~=~=~
@@ -148,6 +113,40 @@ func (p PostgresRepo) FindByOwnerID(ownerID int) ([]Track, error) {
 	sqlStatement :=
 		`SELECT id, user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, extra from public.tracks
 		WHERE owner_id = $1`
+
+	rows, err := p.db.Query(sqlStatement, ownerID)
+	if err != nil {
+		// handle this error better than this
+		return nil, err
+	}
+	defer rows.Close()
+
+	tracks := []Track{}
+	for rows.Next() {
+		var t Track
+		err = rows.Scan(&t.ID, &t.UserID, &t.FpHash, &t.PageURL, &t.PagePath, &t.PageReferrer, &t.PageTitle, &t.Event, &t.CampaignSource, &t.CampaignMedium, &t.CampaignName, &t.CampaignContent, &t.SentAt, &t.Extra)
+		if err != nil {
+			// handle this error
+			return nil, err
+		}
+		tracks = append(tracks, t)
+	}
+	// get any error encountered during iteration
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return tracks, nil
+}
+
+// FindByAttributeAndValue finds all tracks where the attribute is a specific value
+func (p PostgresRepo) FindByAttributeAndValue(ownerID int, attribute string, value string) ([]Track, error) {
+	// TODO: This can't be safe...
+	sqlStatement :=
+		fmt.Sprintf(`SELECT id, user_id, fp_hash, page_url, page_path, page_referrer, page_title, event, campaign_source, campaign_medium, campaign_name, campaign_content, sent_at, extra from public.tracks
+		WHERE owner_id = $1
+		AND %s = '%v'`, attribute, value)
 
 	rows, err := p.db.Query(sqlStatement, ownerID)
 	if err != nil {

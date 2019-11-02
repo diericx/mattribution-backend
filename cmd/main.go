@@ -9,7 +9,8 @@ import (
 
 	_ "github.com/lib/pq"
 
-	track "github.com/diericx/tracker/backend/pkg"
+	"github.com/diericx/tracker/backend/pkg/conversionrule"
+	"github.com/diericx/tracker/backend/pkg/track"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
@@ -32,12 +33,20 @@ type trackDailyCountsPayload struct {
 }
 
 func main() {
+	// Create tracks postgres repo
 	trackPostgresRepo, err := track.NewPostgresRepo("localhost", 5432, "postgres", "postgres", "mattribution")
 	if err != nil {
 		panic(err)
 	}
 	defer trackPostgresRepo.GetDB().Close()
-	trackService := track.NewService(trackPostgresRepo)
+	// Create conversion rules postgres repo
+	crPostgresRepo, err := conversionrule.NewPostgresRepo("localhost", 5432, "postgres", "postgres", "mattribution")
+	if err != nil {
+		panic(err)
+	}
+	defer trackPostgresRepo.GetDB().Close()
+
+	service := NewService(trackPostgresRepo, crPostgresRepo)
 
 	r := mux.NewRouter()
 	// TODO
@@ -60,7 +69,7 @@ func main() {
 		ip, _, _ := net.SplitHostPort(r.RemoteAddr)
 		track.IP = ip
 
-		_, err = trackService.New(mockOwnerID, track)
+		_, err = service.NewTrack(mockOwnerID, track)
 		if err != nil {
 			panic(err)
 		}
@@ -75,7 +84,24 @@ func main() {
 		// Get pixel data from client
 		// v := r.URL.Query()
 
-		tracks, err := trackService.GetAll(mockOwnerID)
+		tracks, err := service.GetAllTracks(mockOwnerID)
+		if err != nil {
+			panic(err)
+		}
+
+		p := tracksPayload{tracks}
+
+		// Write gif back to client
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(p)
+	}).Methods("GET")
+
+	r.HandleFunc("/v1/pixel/tracks/conversions", func(w http.ResponseWriter, r *http.Request) {
+		// Get pixel data from client
+		// v := r.URL.Query()
+
+		tracks, err := service.GetTracksByAttributeAndValue(mockOwnerID, "event", "signup")
 		if err != nil {
 			panic(err)
 		}
@@ -92,7 +118,7 @@ func main() {
 		// Get pixel data from client
 		// v := r.URL.Query()
 
-		trackCounts, err := trackService.GetDailyCounts(mockOwnerID)
+		trackCounts, err := service.GetDailyTrackCounts(mockOwnerID)
 		if err != nil {
 			panic(err)
 		}

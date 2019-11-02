@@ -7,10 +7,10 @@ import (
 
 // ConversionRule is a high level object that collects individual Track objects
 type ConversionRule struct {
-	ID      int
-	OwnerID int
-	Column  string
-	Value   string
+	ID        int
+	OwnerID   int
+	Attribute string
+	Value     string
 }
 
 // Repository repository interface to model how we interact with our repo (storage)
@@ -57,11 +57,11 @@ func (p PostgresRepo) GetDB() *sql.DB {
 // Store stores a new track object
 func (p PostgresRepo) Store(ownerID int, cr ConversionRule) (id int, err error) {
 	sqlStatement :=
-		`INSERT INTO public.conversion_rules (owner_id, column, value)
+		`INSERT INTO public.conversion_rules (owner_id, attribute, value)
 	VALUES($1, $2)
 	RETURNING id`
 
-	err = p.db.QueryRow(sqlStatement, ownerID, cr.OwnerID, cr.Column, cr.Value).Scan(&id)
+	err = p.db.QueryRow(sqlStatement, ownerID, cr.OwnerID, cr.Attribute, cr.Value).Scan(&id)
 	if err != nil {
 		return id, err
 	}
@@ -72,7 +72,7 @@ func (p PostgresRepo) Store(ownerID int, cr ConversionRule) (id int, err error) 
 // FindByOwnerID finds all track objects by owner id
 func (p PostgresRepo) FindByOwnerID(ownerID int) ([]ConversionRule, error) {
 	sqlStatement :=
-		`SELECT id, column, value from public.tracks
+		`SELECT id, attribute, value from public.tracks
 		WHERE owner_id = $1`
 
 	rows, err := p.db.Query(sqlStatement, ownerID)
@@ -85,7 +85,7 @@ func (p PostgresRepo) FindByOwnerID(ownerID int) ([]ConversionRule, error) {
 	conversionRules := []ConversionRule{}
 	for rows.Next() {
 		var cr ConversionRule
-		err = rows.Scan(&cr.ID, &cr.Column, &cr.Value)
+		err = rows.Scan(&cr.ID, &cr.Attribute, &cr.Value)
 		if err != nil {
 			// handle this error
 			return nil, err
